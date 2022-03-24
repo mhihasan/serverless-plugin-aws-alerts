@@ -424,6 +424,15 @@ The plugin will always apply dimension of {Name: FunctionName, Value: ((Function
             ]
 ```
 
+## Alert on Latest Lambda Version Only
+This plugin enables users to configure alarms on latest version of lambda function. 
+This can be done by setting `latestVersionOnly` to `true` as following:
+```yaml
+custom:
+  alerts:
+    latestVersionOnly: true
+```
+
 ## Using Percentile Statistic for a Metric
 
 Statistic not only supports SampleCount, Average, Sum, Minimum or Maximum as defined in CloudFormation [here](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-statistic), but also percentiles. This is possible by leveraging  [ExtendedStatistic](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-extendedstatistic) under the hood. This plugin will automatically choose the correct key for you. See an example below:

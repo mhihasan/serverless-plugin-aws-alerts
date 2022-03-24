@@ -99,7 +99,14 @@ class AlertsPlugin {
     return this.getAlarms(alarms, definitions);
   }
 
-  getAlarmCloudFormation(alertTopics, definition, functionName, functionRef) {
+  getAlarmCloudFormation({
+    alertTopics,
+    definition,
+    functionName,
+    functionRef,
+    functionFullName,
+    functionVersionLogicalId,
+  }) {
     if (!functionRef) {
       return;
     }
@@ -148,11 +155,13 @@ class AlertsPlugin {
 
     const dimensions = definition.pattern
       ? []
-      : this.naming.getDimensionsList(
-          definition.dimensions,
+      : this.naming.getDimensionsList({
+          dimensionsList: definition.dimensions,
           functionRef,
-          definition.omitDefaultDimension
-        );
+          functionFullName,
+          functionVersionLogicalId,
+          omitDefaultDimension: definition.omitDefaultDimension,
+        });
 
     const treatMissingData = definition.treatMissingData
       ? definition.treatMissingData
@@ -425,12 +434,15 @@ class AlertsPlugin {
           functionName
         );
         if (alarm.enabled) {
-          const cf = this.getAlarmCloudFormation(
+          const cf = this.getAlarmCloudFormation({
             alertTopics,
-            alarm,
+            definition: alarm,
             functionName,
-            normalizedFunctionName
-          );
+            functionRef: normalizedFunctionName,
+            functionFullName: functionObj.name,
+            functionVersionLogicalId:
+              !!config.latestVersionOnly && functionObj.versionLogicalId,
+          });
 
           statements[key] = cf;
 
