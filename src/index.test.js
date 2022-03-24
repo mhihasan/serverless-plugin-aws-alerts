@@ -1201,12 +1201,12 @@ describe('#index', () => {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(
+      const cf = plugin.getAlarmCloudFormation({
         alertTopics,
         definition,
         functionName,
-        functionRef
-      );
+        functionRef,
+      });
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1269,12 +1269,12 @@ describe('#index', () => {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(
+      const cf = plugin.getAlarmCloudFormation({
         alertTopics,
         definition,
         functionName,
-        functionRef
-      );
+        functionRef,
+      });
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1331,12 +1331,12 @@ describe('#index', () => {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(
+      const cf = plugin.getAlarmCloudFormation({
         alertTopics,
         definition,
         functionName,
-        functionRef
-      );
+        functionRef,
+      });
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1395,12 +1395,12 @@ describe('#index', () => {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(
+      const cf = plugin.getAlarmCloudFormation({
         alertTopics,
         definition,
         functionName,
-        functionRef
-      );
+        functionRef,
+      });
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1461,12 +1461,12 @@ describe('#index', () => {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(
+      const cf = plugin.getAlarmCloudFormation({
         alertTopics,
         definition,
         functionName,
-        functionRef
-      );
+        functionRef,
+      });
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1519,12 +1519,12 @@ describe('#index', () => {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(
+      const cf = plugin.getAlarmCloudFormation({
         alertTopics,
         definition,
         functionName,
-        functionRef
-      );
+        functionRef,
+      });
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1578,12 +1578,12 @@ describe('#index', () => {
       const functionName = 'func-name';
       const functionRef = 'func-ref';
 
-      const cf = plugin.getAlarmCloudFormation(
+      const cf = plugin.getAlarmCloudFormation({
         alertTopics,
         definition,
         functionName,
-        functionRef
-      );
+        functionRef,
+      });
 
       expect(cf).toEqual({
         Type: 'AWS::CloudWatch::Alarm',
@@ -1626,6 +1626,65 @@ describe('#index', () => {
           ],
           ThresholdMetricId: 'ad1',
         },
+      });
+    });
+
+    it('should include Resource dimension for for lambda version', () => {
+      const alertTopics = {
+        ok: 'ok-topic',
+        alarm: 'alarm-topic',
+        insufficientData: 'insufficientData-topic',
+      };
+
+      const definition = {
+        type: 'static',
+        treatMissingData: 'breaching',
+      };
+
+      const functionName = 'func-name';
+      const functionRef = 'func-ref';
+      const functionFullName = 'funcFullName';
+      const functionVersionLogicalId = 'funcVersionLogicalId';
+
+      const cf = plugin.getAlarmCloudFormation({
+        alertTopics,
+        definition,
+        functionName,
+        functionRef,
+        functionFullName,
+        functionVersionLogicalId,
+      });
+
+      expect(cf).toEqual({
+        Properties: {
+          AlarmActions: ['alarm-topic'],
+          Dimensions: [
+            {
+              Name: 'FunctionName',
+              Value: {
+                Ref: 'func-ref',
+              },
+            },
+            {
+              Name: 'Resource',
+              Value: {
+                'Fn::Join': [
+                  ':',
+                  [
+                    functionFullName,
+                    {
+                      'Fn::GetAtt': [functionVersionLogicalId, 'Version'],
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          InsufficientDataActions: ['insufficientData-topic'],
+          OKActions: ['ok-topic'],
+          TreatMissingData: 'breaching',
+        },
+        Type: 'AWS::CloudWatch::Alarm',
       });
     });
   });

@@ -19,7 +19,13 @@ class Naming {
     return `${upperFirst(metricName)}${functionName}`;
   }
 
-  getDimensionsList(dimensionsList, funcRef, omitDefaultDimension) {
+  getDimensionsList({
+    dimensionsList,
+    functionRef,
+    functionVersionLogicalId,
+    omitDefaultDimension,
+    functionFullName,
+  }) {
     if (omitDefaultDimension) {
       return dimensionsList || [];
     }
@@ -27,7 +33,7 @@ class Naming {
     const funcNameDimension = {
       Name: 'FunctionName',
       Value: {
-        Ref: funcRef,
+        Ref: functionRef,
       },
     };
 
@@ -35,6 +41,24 @@ class Naming {
       (dim) => dim.Name !== 'FunctionName'
     );
     filteredDimensions.push(funcNameDimension);
+
+    if (functionVersionLogicalId) {
+      filteredDimensions.push({
+        Name: 'Resource',
+        Value: {
+          'Fn::Join': [
+            ':',
+            [
+              functionFullName,
+              {
+                'Fn::GetAtt': [functionVersionLogicalId, 'Version'],
+              },
+            ],
+          ],
+        },
+      });
+    }
+
     return filteredDimensions;
   }
 

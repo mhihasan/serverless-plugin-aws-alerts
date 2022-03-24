@@ -40,7 +40,7 @@ describe('#naming', () => {
     });
   });
 
-  describe('#getDimensionsMap', () => {
+  describe('#getDimensionsList', () => {
     let naming = null;
     beforeEach(() => (naming = new Naming()));
 
@@ -49,19 +49,22 @@ describe('#naming', () => {
         { Name: 'Duck', Value: 'QUACK' },
         { Name: 'FunctionName', Value: { Ref: 'funcName' } },
       ];
-      const actual = naming.getDimensionsList(
-        [
+      const actual = naming.getDimensionsList({
+        dimensionsList: [
           { Name: 'FunctionName', Value: 'overridden' },
           { Name: 'Duck', Value: 'QUACK' },
         ],
-        'funcName'
-      );
+        functionRef: 'funcName',
+      });
       expect(actual).toEqual(expected);
     });
 
     it('should use function name derived from funcref when dimensions are undefined', () => {
       const expected = [{ Name: 'FunctionName', Value: { Ref: 'funcName' } }];
-      const actual = naming.getDimensionsList(undefined, 'funcName');
+      const actual = naming.getDimensionsList({
+        dimensionsList: undefined,
+        functionRef: 'funcName',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -70,21 +73,52 @@ describe('#naming', () => {
         { Name: 'Duck', Value: 'QUACK' },
         { Name: 'FunctionName', Value: { Ref: 'funcName' } },
       ];
-      const actual = naming.getDimensionsList(
-        [{ Name: 'Duck', Value: 'QUACK' }],
-        'funcName'
-      );
+      const actual = naming.getDimensionsList({
+        dimensionsList: [{ Name: 'Duck', Value: 'QUACK' }],
+        functionRef: 'funcName',
+      });
       expect(actual).toEqual(expected);
     });
 
     it('should not include FunctionName when omitFunctionNameDimension is true', () => {
       const expected = [{ Name: 'Duck', Value: 'QUACK' }];
-      const actual = naming.getDimensionsList(
-        [{ Name: 'Duck', Value: 'QUACK' }],
-        'funcName',
-        true
-      );
+      const actual = naming.getDimensionsList({
+        dimensionsList: [{ Name: 'Duck', Value: 'QUACK' }],
+        functionRef: 'funcName',
+        omitDefaultDimension: true,
+      });
       expect(actual).toEqual(expected);
+    });
+
+    it('should include Resource dimension if functionVersionLogicalId is passed', () => {
+      const actual = naming.getDimensionsList({
+        functionRef: 'funcRef',
+        functionVersionLogicalId: 'funcVersionLogicalId',
+        functionFullName: 'funcFullName',
+      });
+
+      expect(actual).toEqual([
+        {
+          Name: 'FunctionName',
+          Value: {
+            Ref: 'funcRef',
+          },
+        },
+        {
+          Name: 'Resource',
+          Value: {
+            'Fn::Join': [
+              ':',
+              [
+                'funcFullName',
+                {
+                  'Fn::GetAtt': ['funcVersionLogicalId', 'Version'],
+                },
+              ],
+            ],
+          },
+        },
+      ]);
     });
   });
 
